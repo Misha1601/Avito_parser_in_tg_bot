@@ -24,9 +24,12 @@ async def start_command(msg: types.Message):
     """
         обработка команд start и help
     """
-    await msg.answer('Бот который присылает объявления с avito.ru по запросу.\
- Чтобы отслеживать объявления - отправьте ссылку. Чтобы перестать - повторно\
- отправьте ссылку. Комманда /all показывает выши ссылки.')
+    await msg.answer('Бот который присылает новые объявления с avito.ru по запросу.\
+Чтобы отслеживать объявления - отправьте настроенную ссылку из браузера.\
+Для отмены - отправьте ссылку повторно.\
+Комманда /all показывает все Ваши ссылки.\
+Новые объявления приходят с периодичностью в 60 минут,\
+с 9.00 до 21.00')
 
 
 @dp.message_handler(commands=['all'])
@@ -46,14 +49,14 @@ async def text_gandler(msg: types.Message):
     """
     user_id = int(msg.from_id)
     if user_id != int(ADMIN_ID):
-        await msg.answer('Ты не авторизованный пользователь.')
+        await msg.answer('Ты не авторизованный пользователь, для доступа напиши админу чата')
     else:
         if 'avito.ru' in str(msg.text).lower():
             request_link = msg.text
             result = check_request_in_db(request_link)
             if result is None:
                 insert_request_to_subscription(request_link)
-                await msg.answer('Теперь мы будем следить за объявлениями по этому запросу.')
+                await msg.answer('Теперь все новые объявления будут приходить в этот чат. Ждите!')
                 posts_data = get_posts_data(request_link)
                 for post_data in posts_data:
                     post_name = post_data['post_name']

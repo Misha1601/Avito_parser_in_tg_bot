@@ -18,15 +18,17 @@ class Subscriptions(Base):
     """
     __tablename__ = 'subscriptions'
     id = Column(Integer(), primary_key=True)
+    id_user_tg = Column(Integer, nullable=True)
     subscription = Column(String(200), nullable=False)
 
 
 class Posts(Base):
     """
-        таблица отправленных объявлений в чат для проверки
+        таблица распарсенных объявлений
     """
     __tablename__ = 'posts'
     id = Column(Integer(), primary_key=True)
+    id_user_tg = Column(Integer, nullable=True)
     post_name = Column(String(200), nullable=False)
     post_link = Column(String(200), nullable=False)
 
