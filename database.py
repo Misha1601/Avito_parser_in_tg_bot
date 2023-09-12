@@ -22,6 +22,15 @@ class Subscriptions(Base):
     subscription = Column(String(200), nullable=False)
 
 
+class UserTg(Base):
+    """
+        таблица подписок пользоветеля
+    """
+    __tablename__ = 'usertg'
+    id = Column(Integer(), primary_key=True)
+    id_user_tg = Column(Integer, nullable=True)
+
+
 class Posts(Base):
     """
         таблица распарсенных объявлений
