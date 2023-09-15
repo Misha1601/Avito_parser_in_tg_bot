@@ -18,17 +18,8 @@ class Subscriptions(Base):
     """
     __tablename__ = 'subscriptions'
     id = Column(Integer(), primary_key=True)
-    id_user_tg = Column(Integer, nullable=True)
+    chat_id = Column(Integer, nullable=True)
     subscription = Column(String(200), nullable=False)
-
-
-class UserTg(Base):
-    """
-        таблица подписок пользоветеля
-    """
-    __tablename__ = 'usertg'
-    id = Column(Integer(), primary_key=True)
-    id_user_tg = Column(Integer, nullable=True)
 
 
 class Posts(Base):
@@ -37,7 +28,7 @@ class Posts(Base):
     """
     __tablename__ = 'posts'
     id = Column(Integer(), primary_key=True)
-    id_user_tg = Column(Integer, nullable=True)
+    chat_id = Column(Integer, nullable=True)
     post_name = Column(String(200), nullable=False)
     post_link = Column(String(200), nullable=False)
 
@@ -48,56 +39,89 @@ try:
 except Exception as error:
     pass
 
-def check_request_in_db(request_link):
+def check_request_in_db(request_link, chat_id=False):
     """
         проверка наличия подписки в базе данных
     """
-    request = session.query(Subscriptions).filter(Subscriptions.subscription == request_link).first()
+    if chat_id:
+        request = session.query(Subscriptions).filter(Subscriptions.chat_id == chat_id).first()
+    else:
+        request = session.query(Subscriptions).filter(Subscriptions.subscription == request_link).first()
     return request
 
-def insert_request_to_subscription(request_link):
+def insert_request_to_subscription(request_link, chat_id=False):
     """
         добавление подписки в базу данных
     """
-    subscriptions = Subscriptions(subscription=request_link)
+    if chat_id:
+        subscriptions = Subscriptions(subscription=request_link, chat_id=chat_id)
+    else:
+        subscriptions = Subscriptions(subscription=request_link)
     try:
         session.add(subscriptions)
         session.commit()
     except Exception as error:
         pass
 
-def check_post_in_db(post_link):
+def check_post_in_db(post_link, chat_id=False):
     """
         проверка нахождения объявления в базе данных
     """
-    request = session.query(Posts).filter(Posts.post_link == post_link).first()
+    if chat_id:
+        request = session.query(Posts).filter(Posts.post_link == post_link, Posts.chat_id == chat_id).first()
+    else:
+        request = session.query(Posts).filter(Posts.post_link == post_link).first()
     return request
 
-def insert_post_to_posts(post_name, post_link):
+def insert_post_to_posts(post_name, post_link, chat_id=False):
     """
         вставка объявления в базу данных
     """
-    posts = Posts(post_name=post_name, post_link=post_link)
+    if chat_id:
+        posts = Posts(post_name=post_name, post_link=post_link, chat_id=chat_id)
+    else:
+        posts = Posts(post_name=post_name, post_link=post_link)
     try:
         session.add(posts)
         session.commit()
     except Exception as error:
         pass
 
-def get_all_subscriptions():
+def get_all_subscriptions(chat_id=False):
     """
         получение списка всех подписок пользователя
     """
-    all_subscriptions = session.query(Subscriptions).all()
+    if chat_id:
+        all_subscriptions = session.query(Subscriptions).filter(Subscriptions.chat_id == chat_id).all()
+    else:
+        all_subscriptions = session.query(Subscriptions).all()
     return all_subscriptions
 
-def unsubscription(request_link):
+def unsubscription(request_link, chat_id=False):
     """
         удаление подписки из базы данных
     """
-    subscription = session.query(Subscriptions).filter(Subscriptions.subscription == request_link).first()
+    if chat_id:
+        subscription = session.query(Subscriptions).filter(Subscriptions.subscription == request_link, Subscriptions.chat_id == chat_id).first()
+    else:
+        subscription = session.query(Subscriptions).filter(Subscriptions.subscription == request_link).first()
     try:
         session.delete(subscription)
         session.commit()
     except Exception as error:
         pass
+
+if __name__ == '__main__':
+    # insert_request_to_subscription('link111111', 111)
+    # insert_request_to_subscription('link222222', 222)
+    # insert_request_to_subscription('link333333', 333)
+    # insert_request_to_subscription('link444444', 111)
+    # insert_request_to_subscription('link555555', 222)
+    # post = check_request_in_db('link111111')
+    # print(post.subscription)
+    # insert_post_to_posts('11', 'qqqq', chat_id=111)
+    # insert_post_to_posts('111', 'wwww', chat_id=111)
+    # insert_post_to_posts('22', 'eeee', chat_id=222)
+    # print(check_post_in_db('qqqq', chat_id=111))
+    print([(i.chat_id, i.subscription) for i in get_all_subscriptions()])
+    # print(unsubscription('link222222', chat_id=333))

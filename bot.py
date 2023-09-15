@@ -37,6 +37,7 @@ async def all_command(msg: types.Message):
     """
         обработка команды all для получения ссылок на все подписки
     """
+    # id_chat=msg.chat.id
     all_subscriptions = get_all_subscriptions()
     for subscription in all_subscriptions:
         await msg.answer(subscription.subscription, disable_web_page_preview=True)
