@@ -1,7 +1,7 @@
 aiogram==2.25
 aioschedule==0.5.2
 async-generator==1.10
-environs=9.5.0
+environs
 selenium==4.8.0
 SQLAlchemy==2.0.20
 tqdm==4.66.1

@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, Integer
+from sqlalchemy import create_engine, Column, String, Integer, distinct
 from sqlalchemy.orm import Session, DeclarativeBase
 
 
@@ -38,6 +38,13 @@ try:
     session = Session(bind=engine)
 except Exception as error:
     pass
+
+def get_all_chat_id():
+    """
+        Получение списка пользователей имеющих подписку
+    """
+    get_all_chat_id = [result[0] for result in session.query(distinct(Subscriptions.chat_id)).all()]
+    return get_all_chat_id
 
 def check_request_in_db(request_link, chat_id=False):
     """
@@ -123,5 +130,6 @@ if __name__ == '__main__':
     # insert_post_to_posts('111', 'wwww', chat_id=111)
     # insert_post_to_posts('22', 'eeee', chat_id=222)
     # print(check_post_in_db('qqqq', chat_id=111))
-    print([(i.chat_id, i.subscription) for i in get_all_subscriptions()])
+    # print([(i.chat_id, i.subscription) for i in get_all_subscriptions()])
     # print(unsubscription('link222222', chat_id=333))
+    print(get_all_chat_id())

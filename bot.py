@@ -37,8 +37,8 @@ async def all_command(msg: types.Message):
     """
         обработка команды all для получения ссылок на все подписки
     """
-    # id_chat=msg.chat.id
-    all_subscriptions = get_all_subscriptions()
+    id_chat=msg.chat.id
+    all_subscriptions = get_all_subscriptions(id_chat=id_chat)
     for subscription in all_subscriptions:
         await msg.answer(subscription.subscription, disable_web_page_preview=True)
 
@@ -75,20 +75,29 @@ async def task():
         получение новых постов с авито
     """
     all_subscriptions = get_all_subscriptions()
-    if all_subscriptions != []:
-        for subscription in all_subscriptions:
-            print('-------------------------------------------')
-            print('-------Началась проверка новых постов------')
-            print('-------------------------------------------')
-            request_link = subscription.subscription
-            posts_data = get_posts_data(request_link)
-            await send_new_posts(posts_data)
+    all_chat_id = get_all_chat_id()
+    print('-------------------------------------------')
+    print('-------Началась проверка новых постов------')
+    print('-------------------------------------------')
+    # if all_subscriptions != []:
+    #     for subscription in all_subscriptions:
+    #         request_link = subscription.subscription
+    #         posts_data = get_posts_data(request_link)
+    #         await send_new_posts(posts_data)
+
+    for chat_id in all_chat_id:
+        all_subscriptions = get_all_subscriptions(chat_id=chat_id)
+        if all_subscriptions != []:
+            for subscription in all_subscriptions:
+                request_link = subscription.subscription
+                posts_data = get_posts_data(request_link)
+                await send_new_posts(posts_data, chat_id=chat_id)
     print('-------------------------------------------')
     print('------Проверка новых постов завершена------')
     print('-------------------------------------------')
 
 
-async def send_new_posts(posts_data):
+async def send_new_posts(posts_data, chat_id):
     """
         отправка новых постов с авито пользователю
     """
@@ -102,7 +111,7 @@ async def send_new_posts(posts_data):
         post_link = post_data['post_link']
         result = check_post_in_db(post_link)
         if result is None:
-            await bot.send_message(ADMIN_ID,
+            await bot.send_message(chat_id,
                                    f'<a href="{post_link}">{post_name}</a>\n\
 {post_price} {post_budge}\n\
 {post_params}\n\
