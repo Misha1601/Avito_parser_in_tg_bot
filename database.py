@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, Integer, distinct
+from sqlalchemy import create_engine, Column, String, Integer, distinct, Boolean
 from sqlalchemy.orm import Session, DeclarativeBase
 
 
@@ -11,6 +11,14 @@ except Exception as error:
 class Base(DeclarativeBase):
     pass
 
+class Users(Base):
+    """
+        таблица пользователей имеющих доступ к боту
+    """
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    user_chat_id = Column(Integer, nullable=True)
+    active = Column(Boolean, default=True)
 
 class Subscriptions(Base):
     """
@@ -55,6 +63,45 @@ def check_request_in_db(request_link, chat_id=False):
     else:
         request = session.query(Subscriptions).filter(Subscriptions.subscription == request_link).first()
     return request
+
+def insert_user(chat_id):
+    """
+        Добавление пользователя
+    """
+    user = session.query(Users).filter_by(user_chat_id=chat_id).first()
+    if user:
+        return None
+    else:
+        user = Users(user_chat_id=chat_id)
+        try:
+            session.add(user)
+            session.commit()
+        except Exception as error:
+            pass
+
+def deactivate_user(chat_id):
+    """
+        Деактивация пользователя
+    """
+    user = session.query(Users).filter_by(user_chat_id=chat_id).first()
+    if user:
+        try:
+            user.active = False
+            session.commit()
+        except Exception as error:
+            pass
+
+def activate_user(chat_id):
+    """
+        Активация пользователя
+    """
+    user = session.query(Users).filter_by(user_chat_id=chat_id, active=False).first()
+    if user:
+        try:
+            user.active = True
+            session.commit()
+        except Exception as error:
+            pass
 
 def insert_request_to_subscription(request_link, chat_id=False):
     """
@@ -132,4 +179,6 @@ if __name__ == '__main__':
     # print(check_post_in_db('qqqq', chat_id=111))
     # print([(i.chat_id, i.subscription) for i in get_all_subscriptions()])
     # print(unsubscription('link222222', chat_id=333))
-    print(get_all_chat_id())
+    # print(get_all_chat_id())
+    insert_user(12)
+    activate_user(23232)

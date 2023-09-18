@@ -97,7 +97,7 @@ async def task():
     print('-------------------------------------------')
 
 
-async def send_new_posts(posts_data, chat_id):
+async def send_new_posts(posts_data, chat_id=chat_id):
     """
         отправка новых постов с авито пользователю
     """
