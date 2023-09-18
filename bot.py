@@ -37,10 +37,14 @@ async def all_command(msg: types.Message):
     """
         обработка команды all для получения ссылок на все подписки
     """
-    id_chat=msg.chat.id
-    all_subscriptions = get_all_subscriptions(id_chat=id_chat)
-    for subscription in all_subscriptions:
-        await msg.answer(subscription.subscription, disable_web_page_preview=True)
+    chat_id=msg.chat.id
+    user_in_db = session.query(Users).filter_by(user_chat_id=chat_id, active=True).first()
+    if user_in_db:
+        all_subscriptions = get_all_subscriptions(chat_id=chat_id)
+        for subscription in all_subscriptions:
+            await msg.answer(subscription.subscription, disable_web_page_preview=True)
+    else:
+        await msg.answer("Доступ закрыт!")
 
 
 @dp.message_handler(Text)
@@ -74,7 +78,7 @@ async def task():
     """
         получение новых постов с авито
     """
-    all_subscriptions = get_all_subscriptions()
+    # all_subscriptions = get_all_subscriptions()
     all_chat_id = get_all_chat_id()
     print('-------------------------------------------')
     print('-------Началась проверка новых постов------')
@@ -97,7 +101,7 @@ async def task():
     print('-------------------------------------------')
 
 
-async def send_new_posts(posts_data, chat_id=chat_id):
+async def send_new_posts(posts_data, chat_id):
     """
         отправка новых постов с авито пользователю
     """
