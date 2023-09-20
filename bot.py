@@ -37,10 +37,11 @@ async def all_command(msg: types.Message):
     """
         обработка команды all для получения ссылок на все подписки
     """
-    chat_id=msg.chat.id
-    user_in_db = session.query(Users).filter_by(user_chat_id=chat_id, active=True).first()
+    user_id=int(msg.from_id)
+    # print(user_id)
+    user_in_db = user_in_tabel_users(user_id)
     if user_in_db:
-        all_subscriptions = get_all_subscriptions(chat_id=chat_id)
+        all_subscriptions = get_all_subscriptions(user_id=user_id)
         for subscription in all_subscriptions:
             await msg.answer(subscription.subscription, disable_web_page_preview=True)
     else:
@@ -58,17 +59,17 @@ async def text_gandler(msg: types.Message):
     else:
         if 'avito.ru' in str(msg.text).lower():
             request_link = msg.text
-            result = check_request_in_db(request_link)
+            result = check_request_in_db(request_link, user_id=user_id)
             if result is None:
-                insert_request_to_subscription(request_link)
+                insert_request_to_subscription(request_link,user_id=user_id)
                 await msg.answer('Теперь все новые объявления будут приходить в этот чат. Ждите!')
                 posts_data = get_posts_data(request_link)
                 for post_data in posts_data:
                     post_name = post_data['post_name']
                     post_link = post_data['post_link']
-                    insert_post_to_posts(post_name, post_link)
+                    insert_post_to_posts(post_name, post_link, user_id=user_id)
             else:
-                unsubscription(request_link=msg.text)
+                unsubscription(request_link=msg.text, user_id=user_id)
                 await msg.answer('Вы отписались')
         else:
             await msg.answer('Я понимаю только ссылки на avito')
@@ -79,7 +80,7 @@ async def task():
         получение новых постов с авито
     """
     # all_subscriptions = get_all_subscriptions()
-    all_chat_id = get_all_chat_id()
+    all_user_id = get_all_user_id()
     print('-------------------------------------------')
     print('-------Началась проверка новых постов------')
     print('-------------------------------------------')
@@ -89,19 +90,19 @@ async def task():
     #         posts_data = get_posts_data(request_link)
     #         await send_new_posts(posts_data)
 
-    for chat_id in all_chat_id:
-        all_subscriptions = get_all_subscriptions(chat_id=chat_id)
+    for user_id in all_user_id:
+        all_subscriptions = get_all_subscriptions(user_id=user_id)
         if all_subscriptions != []:
             for subscription in all_subscriptions:
                 request_link = subscription.subscription
                 posts_data = get_posts_data(request_link)
-                await send_new_posts(posts_data, chat_id=chat_id)
+                await send_new_posts(posts_data, user_id)
     print('-------------------------------------------')
     print('------Проверка новых постов завершена------')
     print('-------------------------------------------')
 
 
-async def send_new_posts(posts_data, chat_id):
+async def send_new_posts(posts_data, user_id):
     """
         отправка новых постов с авито пользователю
     """
@@ -115,13 +116,13 @@ async def send_new_posts(posts_data, chat_id):
         post_link = post_data['post_link']
         result = check_post_in_db(post_link)
         if result is None:
-            await bot.send_message(chat_id,
+            await bot.send_message(user_id,
                                    f'<a href="{post_link}">{post_name}</a>\n\
 {post_price} {post_budge}\n\
 {post_params}\n\
 {post_description}\n\
 район: {post_geo}', disable_web_page_preview=True)
-            insert_post_to_posts(post_name, post_link)
+            insert_post_to_posts(post_name, post_link, user_id=user_id)
 
 
 async def scheduller():
