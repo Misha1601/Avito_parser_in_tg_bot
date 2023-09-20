@@ -52,6 +52,17 @@ async def all_command(msg: types.Message):
     else:
         await msg.answer("Доступ закрыт!")
 
+@dp.message_handler(is_forwarded=True)
+async def handle_forwarded_message(msg: types.Message):
+    """
+        Обработка пересланных сообщений от Админа
+        Предоставление доступа пользователю
+    """
+    text = msg.text # получите текст исходного сообщения, которое было переслано
+    user_id = message.forward_from.id # строка ниже достаёт id пользывателя из пересланного сообщения
+    print(text)
+    print(user_id)
+
 
 @dp.message_handler(Text)
 async def text_gandler(msg: types.Message):
@@ -73,6 +84,7 @@ async def text_gandler(msg: types.Message):
                     post_name = post_data['post_name']
                     post_link = post_data['post_link']
                     insert_post_to_posts(post_name, post_link, user_id=user_id)
+                print('Проверка постов после подписки завершена')
             else:
                 unsubscription(request_link=msg.text, user_id=user_id)
                 await msg.answer('Вы отписались')
