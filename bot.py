@@ -18,6 +18,8 @@ ADMIN_ID=env.str("ADMIN_ID")
 bot = Bot(BOT_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
 
+if not user_in_tabel_users(user_id=int(ADMIN_ID)):
+    insert_user(user_id=int(ADMIN_ID))
 
 @dp.message_handler(commands=['start', 'help'])
 async def start_command(msg: types.Message):
@@ -42,8 +44,11 @@ async def all_command(msg: types.Message):
     user_in_db = user_in_tabel_users(user_id)
     if user_in_db:
         all_subscriptions = get_all_subscriptions(user_id=user_id)
-        for subscription in all_subscriptions:
-            await msg.answer(subscription.subscription, disable_web_page_preview=True)
+        if all_subscriptions:
+            for subscription in all_subscriptions:
+                await msg.answer(subscription.subscription, disable_web_page_preview=True)
+        else:
+            await msg.answer("Активных подписок нет!")
     else:
         await msg.answer("Доступ закрыт!")
 
