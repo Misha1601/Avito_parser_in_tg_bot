@@ -4,7 +4,7 @@ import random
 import aioschedule
 from environs import Env
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.dispatcher.filters import Text
+from aiogram.dispatcher.filters import Text, ForwardedMessageFilter
 from config import CHECK_FREQUENCY
 from parser import get_posts_data
 from database import *
@@ -59,7 +59,7 @@ async def handle_forwarded_message(msg: types.Message):
         Предоставление доступа пользователю
     """
     text = msg.text # получите текст исходного сообщения, которое было переслано
-    user_id = message.forward_from.id # строка ниже достаёт id пользывателя из пересланного сообщения
+    user_id = msg.forward_from.id # строка ниже достаёт id пользывателя из пересланного сообщения
     print(text)
     print(user_id)
 
