@@ -30,6 +30,7 @@ async def start_command(msg: types.Message):
 Чтобы отслеживать объявления - отправьте настроенную ссылку из браузера.\
 Для отмены - отправьте ссылку повторно.\
 Комманда /all показывает все Ваши ссылки.\
+Бот закрытый, для его разблокировки напишите админу @Nikiforov1601\
 Новые объявления приходят с периодичностью в 60 минут,\
 с 9.00 до 21.00')
 
@@ -50,18 +51,30 @@ async def all_command(msg: types.Message):
         else:
             await msg.answer("Активных подписок нет!")
     else:
-        await msg.answer("Доступ закрыт!")
+        await msg.answer("Ты не авторизованный пользователь, для доступа напиши админу чата @Nikiforov1601")
 
-@dp.message_handler(is_forwarded=True)
+# @dp.message_handler(is_forwarded=True)
+@dp.message_handler(ForwardedMessageFilter(True))
 async def handle_forwarded_message(msg: types.Message):
     """
         Обработка пересланных сообщений от Админа
         Предоставление доступа пользователю
     """
     text = msg.text # получите текст исходного сообщения, которое было переслано
-    user_id = msg.forward_from.id # строка ниже достаёт id пользывателя из пересланного сообщения
-    print(text)
-    print(user_id)
+    user_id = msg.forward_from.id # id пользывателя из пересланного сообщения
+    user_my_id = msg.from_id
+    print(f'Текст пересланного сообщения: {text}')
+    print(f'Id пользователя, чье сообщение переслали: {user_id}')
+    print(f'Id пользователя, кто переслал сообщение: {user_my_id}')
+    if user_my_id == int(ADMIN_ID):
+        user = user_in_tabel_users(user_id=user_id)
+        print(user)
+        if user:
+            await msg.answer('Пользователь уже есть в БД')
+        else:
+            insert_user(user_id=user_id)
+            await msg.answer('Пользователь добавлен в БД')
+            await bot.send_message(user_id, "Вас добавили в бота")
 
 
 @dp.message_handler(Text)
@@ -70,8 +83,10 @@ async def text_gandler(msg: types.Message):
         обработка сообщений пользователя
     """
     user_id = int(msg.from_id)
-    if user_id != int(ADMIN_ID):
-        await msg.answer('Ты не авторизованный пользователь, для доступа напиши админу чата')
+    user_activate = user_in_tabel_users(user_id)
+    # if user_id != int(ADMIN_ID):
+    if not user_activate:
+        await msg.answer('Ты не авторизованный пользователь, для доступа напиши админу чата @Nikiforov1601')
     else:
         if 'avito.ru' in str(msg.text).lower():
             request_link = msg.text
