@@ -18,6 +18,7 @@ class Users(Base):
     __tablename__ = 'users'
     id = Column(Integer(), primary_key=True)
     user_id = Column(Integer, nullable=True)
+    user_nikname = Column(String, nullable=True)
     active = Column(Boolean, default=True)
 
 class Subscriptions(Base):
@@ -64,7 +65,7 @@ def check_request_in_db(request_link, user_id=False):
         request = session.query(Subscriptions).filter(Subscriptions.subscription == request_link).first()
     return request
 
-def insert_user(user_id):
+def insert_user(user_id, user_nikname):
     """
         Добавление пользователя
     """
@@ -72,7 +73,7 @@ def insert_user(user_id):
     if user:
         return None
     else:
-        user = Users(user_id=user_id)
+        user = Users(user_id=user_id, user_nikname=user_nikname)
         try:
             session.add(user)
             session.commit()

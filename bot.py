@@ -19,7 +19,7 @@ bot = Bot(BOT_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
 
 if not user_in_tabel_users(user_id=int(ADMIN_ID)):
-    insert_user(user_id=int(ADMIN_ID))
+    insert_user(user_id=int(ADMIN_ID), user_nikname='@Nikiforov1601')
 
 @dp.message_handler(commands=['start', 'help'])
 async def start_command(msg: types.Message):
@@ -73,7 +73,7 @@ async def handle_forwarded_message(msg: types.Message):
         if user:
             await msg.answer('Пользователь уже есть в БД')
         else:
-            insert_user(user_id=user_id)
+            insert_user(user_id=user_id, user_nikname=f'@{user_nikname}')
             await msg.answer('Пользователь добавлен в БД')
             await bot.send_message(user_id, "Вас добавили в бота")
 
