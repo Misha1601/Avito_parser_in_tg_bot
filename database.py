@@ -111,6 +111,13 @@ def user_in_tabel_users(user_id):
     user = session.query(Users).filter_by(user_id=user_id, active=True).first()
     return user
 
+def all_users_in_table_users(active=True):
+    """
+    Вывод всех активных пользователей
+    """
+    users = session.query(Users).filter_by(active=True).all()
+    return users
+
 def insert_request_to_subscription(request_link, user_id=False):
     """
         добавление подписки в базу данных

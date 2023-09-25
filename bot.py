@@ -52,6 +52,11 @@ async def all_command(msg: types.Message):
             await msg.answer("Активных подписок нет!")
     else:
         await msg.answer("Ты не авторизованный пользователь, для доступа напиши админу чата @Nikiforov1601")
+    if user_id == int(ADMIN_ID):
+        users = all_users_in_table_users()
+        for user in users:
+            await msg.answer(user.user_nikname)
+
 
 # @dp.message_handler(is_forwarded=True)
 @dp.message_handler(ForwardedMessageFilter(True))
