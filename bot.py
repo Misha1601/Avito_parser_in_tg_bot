@@ -99,7 +99,9 @@ async def text_gandler(msg: types.Message):
                 for post_data in posts_data:
                     post_name = post_data['post_name']
                     post_link = post_data['post_link']
-                    insert_post_to_posts(post_name, post_link, user_id=user_id)
+                    post = check_post_in_db(post_link)
+                    if not post:
+                        insert_post_to_posts(post_name, post_link, user_id=user_id)
                 print('Проверка постов после подписки завершена')
             else:
                 unsubscription(request_link=msg.text, user_id=user_id)
@@ -148,7 +150,7 @@ async def send_new_posts(posts_data, user_id):
         post_geo = post_data['post_geo']
         post_link = post_data['post_link']
         result = check_post_in_db(post_link)
-        if result is None:
+        if not result:
             await bot.send_message(user_id,
                                    f'<a href="{post_link}">{post_name}</a>\n\
 {post_price} {post_budge}\n\
