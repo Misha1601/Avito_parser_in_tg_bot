@@ -62,10 +62,12 @@ async def handle_forwarded_message(msg: types.Message):
     """
     text = msg.text # получите текст исходного сообщения, которое было переслано
     user_id = msg.forward_from.id # id пользывателя из пересланного сообщения
+    user_nikname = msg.forward_from.username
     user_my_id = msg.from_id
     print(f'Текст пересланного сообщения: {text}')
     print(f'Id пользователя, чье сообщение переслали: {user_id}')
     print(f'Id пользователя, кто переслал сообщение: {user_my_id}')
+    print(f'ник пользователя пересылаемого сообщения: {user_nikname}')
     if user_my_id == int(ADMIN_ID):
         user = user_in_tabel_users(user_id=user_id)
         print(user)
