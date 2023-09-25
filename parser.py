@@ -1,9 +1,16 @@
 # from webdriver_manager.chrome import ChromeDriverManager
+import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import WebDriverException
 from config import USER_AGENT, DRIVER_PATH
+
+if sys.platform == "linux":
+    from selenium.webdriver.firefox.options import Options
+else:
+    from selenium.webdriver.chrome.options import Options
 
 
 def _create_driver():
@@ -17,7 +24,10 @@ def _create_driver():
     # INFO = 0, WARNING = 1, LOG_ERROR = 2, LOG_FATAL = 3, default is 0.
     options.add_argument('log-level=3')
     try:
-        driver = webdriver.Chrome(executable_path=DRIVER_PATH, options=options)
+        if sys.platform == "linux":
+            driver = webdriver.Firefox(executable_path=DRIVER_PATH, options=options)
+        else:
+            driver = webdriver.Chrome(executable_path=DRIVER_PATH, options=options)
         return driver
     except WebDriverException as error:
         pass

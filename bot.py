@@ -70,7 +70,6 @@ async def handle_forwarded_message(msg: types.Message):
     print(f'ник пользователя пересылаемого сообщения: {user_nikname}')
     if user_my_id == int(ADMIN_ID):
         user = user_in_tabel_users(user_id=user_id)
-        print(user)
         if user:
             await msg.answer('Пользователь уже есть в БД')
         else:
