@@ -61,7 +61,7 @@ def check_request_in_db(request_link, user_id=False):
         проверка наличия подписки в базе данных
     """
     if user_id:
-        request = session.query(Subscriptions).filter(Subscriptions.user_id == user_id).first()
+        request = session.query(Subscriptions).filter(Subscriptions.subscription == request_link, Subscriptions.user_id == user_id).first()
     else:
         request = session.query(Subscriptions).filter(Subscriptions.subscription == request_link).first()
     return request

@@ -19,7 +19,7 @@ bot = Bot(BOT_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
 
 if not user_in_tabel_users(user_id=int(ADMIN_ID)):
-    insert_user(user_id=int(ADMIN_ID), user_nikname='@Nikiforov1601', max_subscriptions=5)
+    insert_user(user_id=int(ADMIN_ID), user_nikname='@Nikiforov1601')
 
 @dp.message_handler(commands=['start', 'help'])
 async def start_command(msg: types.Message):
@@ -96,18 +96,27 @@ async def text_gandler(msg: types.Message):
     else:
         if 'avito.ru' in str(msg.text).lower():
             request_link = msg.text
-            result = check_request_in_db(request_link, user_id=user_id)
+            result = check_request_in_db(request_link=msg.text, user_id=user_id)
+            print(result)
             if result is None:
-                insert_request_to_subscription(request_link,user_id=user_id)
-                await msg.answer('Теперь все новые объявления будут приходить в этот чат. Ждите!')
-                posts_data = get_posts_data(request_link)
-                for post_data in posts_data:
-                    post_name = post_data['post_name']
-                    post_link = post_data['post_link']
-                    post = check_post_in_db(post_link)
-                    if not post:
-                        insert_post_to_posts(post_name, post_link, user_id=user_id)
-                print('Проверка постов после подписки завершена')
+                user_max_sub = user_in_tabel_users(user_id=user_id).max_subscriptions
+                count_user_sub = len(get_all_subscriptions(user_id=user_id))
+                print(user_max_sub)
+                print(count_user_sub)
+                if count_user_sub < user_max_sub:
+                    insert_request_to_subscription(request_link, user_id=user_id)
+                    await msg.answer('Теперь все новые объявления будут приходить в этот чат. Ждите!')
+                    posts_data = get_posts_data(request_link)
+                    for post_data in posts_data:
+                        post_name = post_data['post_name']
+                        post_link = post_data['post_link']
+                        post = check_post_in_db(post_link)
+                        if not post:
+                            insert_post_to_posts(post_name, post_link, user_id=user_id)
+                    print('Проверка постов после подписки завершена')
+                    print(len(get_all_subscriptions(user_id=user_id)))
+                else:
+                    await msg.answer('Максимальное количество подписок = 3, если нужно ещё больше подписок, пиши @Nikiforov1601')
             else:
                 unsubscription(request_link=msg.text, user_id=user_id)
                 await msg.answer('Вы отписались')
