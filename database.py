@@ -53,8 +53,8 @@ def get_all_user_id():
     """
         Получение списка пользователей имеющих подписку
     """
-    get_all_user_id = [result[0] for result in session.query(distinct(Subscriptions.user_id)).all()]
-    return get_all_user_id
+    res = session.query(distinct(Subscriptions.user_id)).all()
+    return [result[0] for result in res]
 
 def check_request_in_db(request_link, user_id):
     """
