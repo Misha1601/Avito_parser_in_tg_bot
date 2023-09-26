@@ -6,8 +6,10 @@ from environs import Env
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher.filters import Text, ForwardedMessageFilter
 from config import CHECK_FREQUENCY
-from parser import get_posts_data
-from database import *
+# from parser import get_posts_data
+import parser
+# from database import *
+import database
 
 
 env = Env()
@@ -20,8 +22,8 @@ bot = Bot(BOT_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
 
 # если БД не создана, создаем её, добавляя администратора
-if not user_in_tabel_users(user_id=int(ADMIN_ID)):
-    insert_user(user_id=int(ADMIN_ID), user_nikname=USERNAME_ADMINE)
+if not database.user_in_tabel_users(user_id=int(ADMIN_ID)):
+    database.insert_user(user_id=int(ADMIN_ID), user_nikname=USERNAME_ADMINE)
 
 @dp.message_handler(commands=['start', 'help'])
 async def start_command(msg: types.Message):
@@ -32,7 +34,7 @@ async def start_command(msg: types.Message):
 Чтобы отслеживать объявления - отправьте настроенную ссылку из браузера.\
 Для отмены - отправьте ссылку повторно.\
 Комманда /all показывает все Ваши ссылки.\
-Бот закрытый, для его разблокировки напишите админу {USERNAME_ADMINE}\
+Бот закрытый, для его разблокировки напишите админу {USERNAME_ADMINE} \
 Новые объявления приходят с периодичностью в 60 минут,\
 с 9.00 до 21.00')
 
@@ -43,10 +45,9 @@ async def all_command(msg: types.Message):
         обработка команды all для получения ссылок на все подписки
     """
     user_id=int(msg.from_id)
-    # print(user_id)
-    user_in_db = user_in_tabel_users(user_id)
+    user_in_db = database.user_in_tabel_users(user_id)
     if user_in_db:
-        all_subscriptions = get_all_subscriptions(user_id=user_id)
+        all_subscriptions = database.get_all_subscriptions(user_id=user_id)
         if all_subscriptions:
             for subscription in all_subscriptions:
                 await msg.answer(subscription.subscription, disable_web_page_preview=True)
@@ -55,7 +56,7 @@ async def all_command(msg: types.Message):
     else:
         await msg.answer(f"Ты не авторизованный пользователь, для доступа напиши админу чата {USERNAME_ADMINE}")
     if user_id == int(ADMIN_ID):
-        users = all_users_in_table_users()
+        users = database.all_users_in_table_users()
         for user in users:
             await msg.answer(user.user_nikname)
 
@@ -69,14 +70,14 @@ async def handle_forwarded_message(msg: types.Message):
     """
     text = msg.text # получите текст исходного сообщения, которое было переслано
     user_id = msg.forward_from.id # id пользывателя из пересланного сообщения
-    user_nikname = msg.forward_from.username
+    user_nikname = msg.forward_from.username # username пользывателя из пересланного сообщения
     user_my_id = msg.from_id
     if user_my_id == int(ADMIN_ID):
-        user = user_in_tabel_users(user_id=user_id)
+        user = database.user_in_tabel_users(user_id=user_id)
         if user:
             await msg.answer('Пользователь уже есть в БД')
         else:
-            insert_user(user_id=user_id, user_nikname=f'@{user_nikname}')
+            database.insert_user(user_id=user_id, user_nikname=f'@{user_nikname}')
             await msg.answer('Пользователь добавлен в БД')
             await bot.send_message(user_id, "Вас добавили в бота")
 
@@ -87,32 +88,32 @@ async def text_gandler(msg: types.Message):
         обработка сообщений пользователя
     """
     user_id = int(msg.from_id)
-    user_activate = user_in_tabel_users(user_id)
-    # if user_id != int(ADMIN_ID):
+    user_activate = database.user_in_tabel_users(user_id)
     if not user_activate:
         await msg.answer(f'Ты не авторизованный пользователь, для доступа напиши админу чата {USERNAME_ADMINE}')
     else:
         if 'avito.ru' in str(msg.text).lower():
             request_link = msg.text
-            result = check_request_in_db(request_link=msg.text, user_id=user_id)
+            result = database.check_request_in_db(request_link=msg.text, user_id=user_id)
             if result is None:
-                user_max_sub = user_in_tabel_users(user_id=user_id).max_subscriptions
-                count_user_sub = len(get_all_subscriptions(user_id=user_id))
+                user_max_sub = database.user_in_tabel_users(user_id=user_id).max_subscriptions
+                count_user_sub = len(database.get_all_subscriptions(user_id=user_id))
                 if count_user_sub < user_max_sub:
-                    insert_request_to_subscription(request_link, user_id=user_id)
+                    database.insert_request_to_subscription(request_link, user_id=user_id)
                     await msg.answer('Теперь все новые объявления будут приходить в этот чат. Ждите!')
-                    posts_data = get_posts_data(request_link)
+                    # Собираем все текущие объявления в БД
+                    posts_data = parser.get_posts_data(request_link)
                     for post_data in posts_data:
                         post_name = post_data['post_name']
                         post_link = post_data['post_link']
-                        post = check_post_in_db(post_link)
+                        post = database.check_post_in_db(post_link, user_id=user_id)
                         if not post:
-                            insert_post_to_posts(post_name, post_link, user_id=user_id)
+                            database.insert_post_to_posts(post_name, post_link, user_id=user_id)
                     print('Проверка постов после подписки завершена')
                 else:
                     await msg.answer(f'Максимальное количество подписок = 3, если нужно ещё больше подписок, пиши {USERNAME_ADMINE}')
             else:
-                unsubscription(request_link=msg.text, user_id=user_id)
+                database.unsubscription(request_link=msg.text, user_id=user_id)
                 await msg.answer('Вы отписались')
         else:
             await msg.answer('Я понимаю только ссылки на avito')
@@ -122,14 +123,14 @@ async def task():
     """
         получение новых постов с авито
     """
-    all_user_id = get_all_user_id()
+    all_user_id = database.get_all_user_id()
     print('-------Началась проверка новых постов------')
     for user_id in all_user_id:
-        all_subscriptions = get_all_subscriptions(user_id=user_id)
+        all_subscriptions = database.get_all_subscriptions(user_id=user_id)
         if all_subscriptions != []:
             for subscription in all_subscriptions:
                 request_link = subscription.subscription
-                posts_data = get_posts_data(request_link)
+                posts_data = parser.get_posts_data(request_link)
                 await send_new_posts(posts_data, user_id)
                 seconds = random.randint(1, 5)
                 await asyncio.sleep(seconds)
@@ -149,7 +150,7 @@ async def send_new_posts(posts_data, user_id):
         post_description = post_data['post_description']
         post_geo = post_data['post_geo']
         post_link = post_data['post_link']
-        result = check_post_in_db(post_link)
+        result = database.check_post_in_db(post_link, user_id=user_id)
         if not result:
             await bot.send_message(user_id,
                                    f'<a href="{post_link}">{post_name}</a>\n\
@@ -157,7 +158,7 @@ async def send_new_posts(posts_data, user_id):
 {post_params}\n\
 {post_description}\n\
 район: {post_geo}', disable_web_page_preview=True)
-            insert_post_to_posts(post_name, post_link, user_id=user_id)
+            database.insert_post_to_posts(post_name, post_link, user_id=user_id)
 
 
 async def scheduller():
@@ -173,7 +174,7 @@ async def scheduller():
         else:
             # Генерируем случайное число от 1 до 30, что бы авито не заподозрило парсинг
             random_number = random.randint(1, 30)
-            # print(f'Заснули на {random_number} секунд')
+            # Заснули на random_number секунд
             await asyncio.sleep(random_number)
 
 
