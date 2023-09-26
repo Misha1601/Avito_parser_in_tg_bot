@@ -19,7 +19,7 @@ bot = Bot(BOT_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
 
 if not user_in_tabel_users(user_id=int(ADMIN_ID)):
-    insert_user(user_id=int(ADMIN_ID), user_nikname='@Nikiforov1601')
+    insert_user(user_id=int(ADMIN_ID), user_nikname='@Nikiforov1601', max_subscriptions=5)
 
 @dp.message_handler(commands=['start', 'help'])
 async def start_command(msg: types.Message):

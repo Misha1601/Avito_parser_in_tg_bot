@@ -19,6 +19,7 @@ class Users(Base):
     id = Column(Integer(), primary_key=True)
     user_id = Column(Integer, nullable=True)
     user_nikname = Column(String, nullable=True)
+    max_subscriptions = Column(Integer, default=3, nullable=True)
     active = Column(Boolean, default=True)
 
 class Subscriptions(Base):
@@ -113,10 +114,23 @@ def user_in_tabel_users(user_id):
 
 def all_users_in_table_users(active=True):
     """
-    Вывод всех активных пользователей
+    Вывод всех активных пользователей в таблице Users
     """
     users = session.query(Users).filter_by(active=True).all()
     return users
+
+def add_or_reduce_max_subscriptions(user_id, number=1):
+    """
+        Изменение максимального количества подписок пользователя
+    """
+    user = session.query(Users).filter_by(user_id=user_id, active=True).first()
+    user_number = user.max_subscriptions
+    if user:
+        try:
+            user.max_subscriptions = user_number + number
+            session.commit()
+        except Exception as error:
+            pass
 
 def insert_request_to_subscription(request_link, user_id=False):
     """
