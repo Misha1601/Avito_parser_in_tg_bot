@@ -56,14 +56,11 @@ def get_all_user_id():
     get_all_user_id = [result[0] for result in session.query(distinct(Subscriptions.user_id)).all()]
     return get_all_user_id
 
-def check_request_in_db(request_link, user_id=False):
+def check_request_in_db(request_link, user_id):
     """
         проверка наличия подписки в базе данных
     """
-    if user_id:
-        request = session.query(Subscriptions).filter(Subscriptions.subscription == request_link, Subscriptions.user_id == user_id).first()
-    else:
-        request = session.query(Subscriptions).filter(Subscriptions.subscription == request_link).first()
+    request = session.query(Subscriptions).filter(Subscriptions.subscription == request_link, Subscriptions.user_id == user_id).first()
     return request
 
 def insert_user(user_id, user_nikname):
@@ -132,62 +129,47 @@ def add_or_reduce_max_subscriptions(user_id, number=1):
         except Exception as error:
             pass
 
-def insert_request_to_subscription(request_link, user_id=False):
+def insert_request_to_subscription(request_link, user_id):
     """
         добавление подписки в базу данных
     """
-    if user_id:
-        subscriptions = Subscriptions(subscription=request_link, user_id=user_id)
-    else:
-        subscriptions = Subscriptions(subscription=request_link)
+    subscriptions = Subscriptions(subscription=request_link, user_id=user_id)
     try:
         session.add(subscriptions)
         session.commit()
     except Exception as error:
         pass
 
-def check_post_in_db(post_link, user_id=False):
+def check_post_in_db(post_link, user_id):
     """
         проверка нахождения объявления в базе данных
     """
-    if user_id:
-        request = session.query(Posts).filter(Posts.post_link == post_link, Posts.user_id == user_id).first()
-    else:
-        request = session.query(Posts).filter(Posts.post_link == post_link).first()
+    request = session.query(Posts).filter(Posts.post_link == post_link, Posts.user_id == user_id).first()
     return request
 
-def insert_post_to_posts(post_name, post_link, user_id=False):
+def insert_post_to_posts(post_name, post_link, user_id):
     """
         вставка объявления в базу данных
     """
-    if user_id:
-        posts = Posts(post_name=post_name, post_link=post_link, user_id=user_id)
-    else:
-        posts = Posts(post_name=post_name, post_link=post_link)
+    posts = Posts(post_name=post_name, post_link=post_link, user_id=user_id)
     try:
         session.add(posts)
         session.commit()
     except Exception as error:
         pass
 
-def get_all_subscriptions(user_id=False):
+def get_all_subscriptions(user_id):
     """
         получение списка всех подписок пользователя
     """
-    if user_id:
-        all_subscriptions = session.query(Subscriptions).filter(Subscriptions.user_id == user_id).all()
-    else:
-        all_subscriptions = session.query(Subscriptions).all()
+    all_subscriptions = session.query(Subscriptions).filter(Subscriptions.user_id == user_id).all()
     return all_subscriptions
 
-def unsubscription(request_link, user_id=False):
+def unsubscription(request_link, user_id):
     """
         удаление подписки из базы данных
     """
-    if user_id:
-        subscription = session.query(Subscriptions).filter(Subscriptions.subscription == request_link, Subscriptions.user_id == user_id).first()
-    else:
-        subscription = session.query(Subscriptions).filter(Subscriptions.subscription == request_link).first()
+    subscription = session.query(Subscriptions).filter(Subscriptions.subscription == request_link, Subscriptions.user_id == user_id).first()
     try:
         session.delete(subscription)
         session.commit()

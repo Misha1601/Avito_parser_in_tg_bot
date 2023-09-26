@@ -1,9 +1,6 @@
-# from webdriver_manager.chrome import ChromeDriverManager
 import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-# from selenium.webdriver.chrome.options import Options
-# from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import WebDriverException
 from config import USER_AGENT, DRIVER_PATH
 
@@ -88,6 +85,9 @@ def _close_driver(driver):
         pass
 
 def get_posts_data(request_link):
+    """
+    Получение страницы с объявлениями
+    """
     driver = _create_driver()
     posts_data = _collect_posts_data(driver, request_link)
     _close_driver(driver)

@@ -14,23 +14,25 @@ env = Env()
 env.read_env(".env")
 BOT_TOKEN=env.str("BOT_TOKEN")
 ADMIN_ID=env.str("ADMIN_ID")
+USERNAME_ADMINE=env.str("USERNAME_ADMINE")
 
 bot = Bot(BOT_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
 
+# если БД не создана, создаем её, добавляя администратора
 if not user_in_tabel_users(user_id=int(ADMIN_ID)):
-    insert_user(user_id=int(ADMIN_ID), user_nikname='@Nikiforov1601')
+    insert_user(user_id=int(ADMIN_ID), user_nikname=USERNAME_ADMINE)
 
 @dp.message_handler(commands=['start', 'help'])
 async def start_command(msg: types.Message):
     """
         обработка команд start и help
     """
-    await msg.answer('Бот который присылает новые объявления с avito.ru по запросу.\
+    await msg.answer(f'Бот который присылает новые объявления с avito.ru по запросу.\
 Чтобы отслеживать объявления - отправьте настроенную ссылку из браузера.\
 Для отмены - отправьте ссылку повторно.\
 Комманда /all показывает все Ваши ссылки.\
-Бот закрытый, для его разблокировки напишите админу @Nikiforov1601\
+Бот закрытый, для его разблокировки напишите админу {USERNAME_ADMINE}\
 Новые объявления приходят с периодичностью в 60 минут,\
 с 9.00 до 21.00')
 
@@ -51,7 +53,7 @@ async def all_command(msg: types.Message):
         else:
             await msg.answer("Активных подписок нет!")
     else:
-        await msg.answer("Ты не авторизованный пользователь, для доступа напиши админу чата @Nikiforov1601")
+        await msg.answer(f"Ты не авторизованный пользователь, для доступа напиши админу чата {USERNAME_ADMINE}")
     if user_id == int(ADMIN_ID):
         users = all_users_in_table_users()
         for user in users:
@@ -69,10 +71,6 @@ async def handle_forwarded_message(msg: types.Message):
     user_id = msg.forward_from.id # id пользывателя из пересланного сообщения
     user_nikname = msg.forward_from.username
     user_my_id = msg.from_id
-    print(f'Текст пересланного сообщения: {text}')
-    print(f'Id пользователя, чье сообщение переслали: {user_id}')
-    print(f'Id пользователя, кто переслал сообщение: {user_my_id}')
-    print(f'ник пользователя пересылаемого сообщения: {user_nikname}')
     if user_my_id == int(ADMIN_ID):
         user = user_in_tabel_users(user_id=user_id)
         if user:
@@ -92,17 +90,14 @@ async def text_gandler(msg: types.Message):
     user_activate = user_in_tabel_users(user_id)
     # if user_id != int(ADMIN_ID):
     if not user_activate:
-        await msg.answer('Ты не авторизованный пользователь, для доступа напиши админу чата @Nikiforov1601')
+        await msg.answer(f'Ты не авторизованный пользователь, для доступа напиши админу чата {USERNAME_ADMINE}')
     else:
         if 'avito.ru' in str(msg.text).lower():
             request_link = msg.text
             result = check_request_in_db(request_link=msg.text, user_id=user_id)
-            print(result)
             if result is None:
                 user_max_sub = user_in_tabel_users(user_id=user_id).max_subscriptions
                 count_user_sub = len(get_all_subscriptions(user_id=user_id))
-                print(user_max_sub)
-                print(count_user_sub)
                 if count_user_sub < user_max_sub:
                     insert_request_to_subscription(request_link, user_id=user_id)
                     await msg.answer('Теперь все новые объявления будут приходить в этот чат. Ждите!')
@@ -114,9 +109,8 @@ async def text_gandler(msg: types.Message):
                         if not post:
                             insert_post_to_posts(post_name, post_link, user_id=user_id)
                     print('Проверка постов после подписки завершена')
-                    print(len(get_all_subscriptions(user_id=user_id)))
                 else:
-                    await msg.answer('Максимальное количество подписок = 3, если нужно ещё больше подписок, пиши @Nikiforov1601')
+                    await msg.answer(f'Максимальное количество подписок = 3, если нужно ещё больше подписок, пиши {USERNAME_ADMINE}')
             else:
                 unsubscription(request_link=msg.text, user_id=user_id)
                 await msg.answer('Вы отписались')
@@ -128,17 +122,8 @@ async def task():
     """
         получение новых постов с авито
     """
-    # all_subscriptions = get_all_subscriptions()
     all_user_id = get_all_user_id()
-    print('-------------------------------------------')
     print('-------Началась проверка новых постов------')
-    print('-------------------------------------------')
-    # if all_subscriptions != []:
-    #     for subscription in all_subscriptions:
-    #         request_link = subscription.subscription
-    #         posts_data = get_posts_data(request_link)
-    #         await send_new_posts(posts_data)
-
     for user_id in all_user_id:
         all_subscriptions = get_all_subscriptions(user_id=user_id)
         if all_subscriptions != []:
@@ -146,9 +131,10 @@ async def task():
                 request_link = subscription.subscription
                 posts_data = get_posts_data(request_link)
                 await send_new_posts(posts_data, user_id)
+                seconds = random.randint(1, 5)
+                await asyncio.sleep(seconds)
     print('-------------------------------------------')
     print('------Проверка новых постов завершена------')
-    print('-------------------------------------------')
 
 
 async def send_new_posts(posts_data, user_id):
@@ -177,13 +163,13 @@ async def send_new_posts(posts_data, user_id):
 async def scheduller():
     aioschedule.every(CHECK_FREQUENCY).minutes.do(task)
     while True:
-        # Получаем текущее время
+        # Получаем текущее время в виде часа
         current_time = datetime.now().time().hour
         # выполняем основную функцию
         await aioschedule.run_pending()
-        # если время 21 час, засыпаем на 12 часов
-        if current_time == 21:
-            await asyncio.sleep(43200)
+        # каждый час засыпаем на час, если время с 21 до 9
+        if current_time in (21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8):
+            await asyncio.sleep(1800)
         else:
             # Генерируем случайное число от 1 до 30, что бы авито не заподозрило парсинг
             random_number = random.randint(1, 30)
