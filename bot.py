@@ -169,8 +169,8 @@ async def scheduller():
         # выполняем основную функцию
         await aioschedule.run_pending()
         # каждый час засыпаем на час, если время с 21 до 9
-        if current_time in (21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8):
-            await asyncio.sleep(1800)
+        if current_time == 21:
+            await asyncio.sleep(43200)
         else:
             # Генерируем случайное число от 1 до 30, что бы авито не заподозрило парсинг
             random_number = random.randint(1, 30)
