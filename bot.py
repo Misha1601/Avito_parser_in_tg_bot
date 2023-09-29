@@ -6,9 +6,7 @@ from environs import Env
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher.filters import Text, ForwardedMessageFilter
 from config import CHECK_FREQUENCY
-# from parser import get_posts_data
 import parser
-# from database import *
 import database
 import re
 
@@ -31,12 +29,13 @@ async def start_command(msg: types.Message):
     """
         обработка команд start и help
     """
-    await msg.answer(f'Бот который присылает новые объявления с avito.ru по запросу.\
-Чтобы отслеживать объявления - отправьте настроенную ссылку из браузера.\
-Для отмены - отправьте ссылку повторно.\
-Комманда /all показывает все Ваши ссылки.\
-Бот закрытый, для его разблокировки напишите админу {USERNAME_ADMINE} \
-Новые объявления приходят с периодичностью в 60 минут,\
+    await msg.answer(f'Бот который присылает новые объявления с avito.ru.\n\
+Бот работает для Авто и Недвижимости, в остальных категориях может не работать.\
+Чтобы отслеживать объявления - отправьте настроенную ссылку из браузера. \
+Для отмены - отправьте ссылку повторно.\n\
+Комманда /all показывает все Ваши ссылки.\n\
+Бот закрытый, для его разблокировки напишите админу {USERNAME_ADMINE}\n\
+Новые объявления приходят с периодичностью в 60 минут, \
 с 9.00 до 21.00')
     if int(msg.from_id) == int(ADMIN_ID):
         await msg.answer('Команды для управления ботом\n\
@@ -85,8 +84,8 @@ async def handle_forwarded_message(msg: types.Message):
             await msg.answer('Пользователь уже есть в БД')
         else:
             database.insert_user(user_id=user_id, user_nikname=f'@{user_nikname}')
-            await msg.answer('Пользователь добавлен в БД')
-            await bot.send_message(user_id, "Вас добавили в бота")
+            await msg.answer(f'Пользователь @{user_nikname} добавлен в БД')
+            await bot.send_message(user_id, "Чат бот разблокирован")
 
 
 @dp.message_handler(Text)
@@ -118,10 +117,10 @@ async def text_gandler(msg: types.Message):
                             database.insert_post_to_posts(post_name, post_link, user_id=user_id)
                     print('Проверка постов после подписки завершена')
                 else:
-                    await msg.answer(f'Максимальное количество подписок = 3, если нужно ещё больше подписок, пиши {USERNAME_ADMINE}')
+                    await msg.answer(f'Максимальное количество подписок = 2, если нужно ещё больше подписок, пиши {USERNAME_ADMINE}')
             else:
                 database.unsubscription(request_link=msg.text, user_id=user_id)
-                await msg.answer('Вы отписались')
+                await msg.answer('Вы отписались от этой подписки!')
         else:
             if user_id != int(ADMIN_ID):
                 await msg.answer('Я понимаю только ссылки на avito')

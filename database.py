@@ -20,7 +20,7 @@ class Users(Base):
     id = Column(Integer(), primary_key=True)
     user_id = Column(Integer, nullable=True)
     user_nikname = Column(String, nullable=True)
-    max_subscriptions = Column(Integer, default=3, nullable=True)
+    max_subscriptions = Column(Integer, default=2, nullable=True)
     active = Column(Boolean, default=True)
 
 class Subscriptions(Base):
