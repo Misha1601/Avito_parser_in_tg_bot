@@ -50,7 +50,7 @@ async def all_command(msg: types.Message):
         all_subscriptions = database.get_all_subscriptions(user_id=user_id)
         if all_subscriptions:
             for subscription in all_subscriptions:
-                await msg.answer(subscription.subscription, disable_web_page_preview=True)
+                await msg.answer(subscription.subscription) #, disable_web_page_preview=True)
         else:
             await msg.answer("Активных подписок нет!")
     else:
