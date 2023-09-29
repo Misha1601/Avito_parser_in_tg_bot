@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, Column, String, Integer, distinct, Boolean
 from sqlalchemy.orm import Session, DeclarativeBase
+import re
 
 
 try:
@@ -122,9 +123,10 @@ def add_or_reduce_max_subscriptions(user_id, number=1):
     """
     user = session.query(Users).filter_by(user_id=user_id, active=True).first()
     user_number = user.max_subscriptions
+    number1 = int(number)
     if user:
         try:
-            user.max_subscriptions = user_number + number
+            user.max_subscriptions = user_number + number1
             session.commit()
         except Exception as error:
             pass
@@ -191,5 +193,25 @@ if __name__ == '__main__':
     # print([(i.user_id, i.subscription) for i in get_all_subscriptions()])
     # print(unsubscription('link222222', user_id=333))
     # print(get_all_user_id())
-    insert_user(12)
-    activate_user(23232)
+    # insert_user(12)
+    # activate_user(23232)
+    # user = all_users_in_table_users()
+    # print([a.user_nikname for a in user])
+    text_user = "@Nikiforov1601 1".split()
+    print(text_user)
+    activ_users = all_users_in_table_users()
+    activ_user = [activ_user.user_nikname for activ_user in activ_users]
+    print(activ_user)
+    print(re.match(r'^-?\d+$', text_user[-1]))
+    if (len(text_user) != 2) or (not re.match(r'^-?\d+$', text_user[-1])):
+        print('В введенной команде ошибка')
+    else:
+        if text_user[0] not in activ_user:
+            print('Или пользователь введен с ошибкой, или его нет в автивных подписчиках')
+        else:
+            user_id_in_text = [a.user_id for a in activ_users if a.user_nikname == text_user[0]][0]
+            print(user_id_in_text)
+            if user_id_in_text:
+                add_or_reduce_max_subscriptions(user_id=user_id_in_text, number=text_user[-1])
+                max_sub = user_in_tabel_users(user_id=user_id_in_text).max_subscriptions
+                print(f'Пользователю {text_user[0]} изменено максимальное количество подписок на {text_user[1]}, теперь оно = {max_sub}')

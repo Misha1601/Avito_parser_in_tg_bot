@@ -10,6 +10,7 @@ from config import CHECK_FREQUENCY
 import parser
 # from database import *
 import database
+import re
 
 
 env = Env()
@@ -37,6 +38,12 @@ async def start_command(msg: types.Message):
 Бот закрытый, для его разблокировки напишите админу {USERNAME_ADMINE} \
 Новые объявления приходят с периодичностью в 60 минут,\
 с 9.00 до 21.00')
+    if int(msg.from_id) == int(ADMIN_ID):
+        await msg.answer('Команды для управления ботом\n\
+После команды /all выводится список активных подписчиков.\n\
+Для изменения количества подписок пишем боту по шаблону: \n"Username число"\n \
+Username - всегда начинается с @\n\
+Число - положительное или отрицательное')
 
 
 @dp.message_handler(commands=['all'])
@@ -116,7 +123,26 @@ async def text_gandler(msg: types.Message):
                 database.unsubscription(request_link=msg.text, user_id=user_id)
                 await msg.answer('Вы отписались')
         else:
-            await msg.answer('Я понимаю только ссылки на avito')
+            if user_id != int(ADMIN_ID):
+                await msg.answer('Я понимаю только ссылки на avito')
+            else:
+                if msg.text[0] == '@':
+                    text_user = msg.text.split()
+                    activ_users = database.all_users_in_table_users()
+                    activ_user = [activ_user.user_nikname for activ_user in activ_users]
+                    if (len(text_user) != 2) or (not re.match(r'^-?\d+$', text_user[-1])):
+                        await msg.answer('В введенной команде ошибка')
+                    else:
+                        if text_user[0] not in activ_user:
+                            await msg.answer('Или пользователь введен с ошибкой, или его нет в автивных подписчиках')
+                        else:
+                            user_id_in_text = [a.user_id for a in activ_users if a.user_nikname == text_user[0]][0]
+                            if user_id_in_text:
+                                database.add_or_reduce_max_subscriptions(user_id=user_id_in_text, number=text_user[-1])
+                                max_sub = database.user_in_tabel_users(user_id=user_id_in_text).max_subscriptions
+                                await msg.answer(f'Пользователю {text_user[0]} изменено максимальное количество подписок на {text_user[1]}, теперь оно = {max_sub}')
+                else:
+                    await msg.answer('Я понимаю только ссылки на avito')
 
 
 async def task():
