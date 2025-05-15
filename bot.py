@@ -56,7 +56,7 @@ async def all_command(msg: types.Message):
         all_subscriptions = database.get_all_subscriptions(user_id=user_id)
         if all_subscriptions:
             for subscription in all_subscriptions:
-                await msg.answer(subscription.subscription) #, disable_web_page_preview=True)
+                await msg.answer(f'{subscription.subscription}') #, disable_web_page_preview=True)
         else:
             await msg.answer("Активных подписок нет!")
     else:
@@ -64,7 +64,7 @@ async def all_command(msg: types.Message):
     if user_id == int(ADMIN_ID):
         users = database.all_users_in_table_users()
         for user in users:
-            await msg.answer(user.user_nikname)
+            await msg.answer(user.user_nikname) # type: ignore
 
 
 # @dp.message_handler(is_forwarded=True)
@@ -102,9 +102,9 @@ async def text_gandler(msg: types.Message):
             request_link = msg.text
             result = database.check_request_in_db(request_link=msg.text, user_id=user_id)
             if result is None:
-                user_max_sub = database.user_in_tabel_users(user_id=user_id).max_subscriptions
+                user_max_sub = database.user_in_tabel_users(user_id=user_id).max_subscriptions # type: ignore
                 count_user_sub = len(database.get_all_subscriptions(user_id=user_id))
-                if count_user_sub < user_max_sub:
+                if count_user_sub < user_max_sub: # type: ignore
                     database.insert_request_to_subscription(request_link, user_id=user_id)
                     await msg.answer('Теперь все новые объявления будут приходить в этот чат. Ждите!')
                     # Собираем все текущие объявления в БД
@@ -135,10 +135,10 @@ async def text_gandler(msg: types.Message):
                         if text_user[0] not in activ_user:
                             await msg.answer('Или пользователь введен с ошибкой, или его нет в автивных подписчиках')
                         else:
-                            user_id_in_text = [a.user_id for a in activ_users if a.user_nikname == text_user[0]][0]
-                            if user_id_in_text:
-                                database.add_or_reduce_max_subscriptions(user_id=user_id_in_text, number=text_user[-1])
-                                max_sub = database.user_in_tabel_users(user_id=user_id_in_text).max_subscriptions
+                            user_id_in_text = [a.user_id for a in activ_users if a.user_nikname == text_user[0]][0] # type: ignore
+                            if user_id_in_text: # type: ignore
+                                database.add_or_reduce_max_subscriptions(user_id=user_id_in_text, number=text_user[-1]) # type: ignore
+                                max_sub = database.user_in_tabel_users(user_id=user_id_in_text).max_subscriptions # type: ignore
                                 await msg.answer(f'Пользователю {text_user[0]} изменено максимальное количество подписок на {text_user[1]}, теперь оно = {max_sub}')
                 else:
                     await msg.answer('Я понимаю только ссылки на avito')

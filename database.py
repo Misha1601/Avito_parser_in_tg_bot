@@ -86,7 +86,7 @@ def deactivate_user(user_id):
     user = session.query(Users).filter_by(user_id=user_id).first()
     if user:
         try:
-            user.active = False
+            user.active = False # type: ignore
             session.commit()
         except Exception as error:
             pass
@@ -98,7 +98,7 @@ def activate_user(user_id):
     user = session.query(Users).filter_by(user_id=user_id, active=False).first()
     if user:
         try:
-            user.active = True
+            user.active = True # type: ignore
             session.commit()
         except Exception as error:
             pass
@@ -122,11 +122,11 @@ def add_or_reduce_max_subscriptions(user_id, number=1):
         Изменение максимального количества подписок пользователя
     """
     user = session.query(Users).filter_by(user_id=user_id, active=True).first()
-    user_number = user.max_subscriptions
+    user_number = user.max_subscriptions # type: ignore
     number1 = int(number)
     if user:
         try:
-            user.max_subscriptions = user_number + number1
+            user.max_subscriptions = user_number + number1 # type: ignore
             session.commit()
         except Exception as error:
             pass
@@ -209,9 +209,9 @@ if __name__ == '__main__':
         if text_user[0] not in activ_user:
             print('Или пользователь введен с ошибкой, или его нет в автивных подписчиках')
         else:
-            user_id_in_text = [a.user_id for a in activ_users if a.user_nikname == text_user[0]][0]
+            user_id_in_text = [a.user_id for a in activ_users if a.user_nikname == text_user[0]][0] # type: ignore
             print(user_id_in_text)
-            if user_id_in_text:
-                add_or_reduce_max_subscriptions(user_id=user_id_in_text, number=text_user[-1])
-                max_sub = user_in_tabel_users(user_id=user_id_in_text).max_subscriptions
+            if user_id_in_text: # type: ignore
+                add_or_reduce_max_subscriptions(user_id=user_id_in_text, number=text_user[-1]) # type: ignore
+                max_sub = user_in_tabel_users(user_id=user_id_in_text).max_subscriptions # type: ignore
                 print(f'Пользователю {text_user[0]} изменено максимальное количество подписок на {text_user[1]}, теперь оно = {max_sub}')
